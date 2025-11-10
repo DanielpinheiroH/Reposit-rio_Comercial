@@ -9,17 +9,13 @@ from sqlalchemy import (
     DateTime,
     Date,
     ForeignKey,
-    BigInteger,
     JSON,
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from .database import Base
 
-
-# ===== Enums =====
 
 class TipoAssetEnum(str, enum.Enum):
     conteudo_especial = "conteudo_especial"
@@ -47,8 +43,6 @@ class ClassConteudoEnum(str, enum.Enum):
     conteudo_casa = "Conteúdo da casa"
 
 
-# ===== Tabelas =====
-
 class Asset(Base):
     __tablename__ = "assets"
     __table_args__ = (
@@ -57,6 +51,7 @@ class Asset(Base):
     )
 
     id = Column(BigInteger, primary_key=True, index=True)
+
     tipo_asset = Column(Enum(TipoAssetEnum, name="tipo_asset_enum"), nullable=False)
     plataforma = Column(Enum(PlataformaEnum, name="plataforma_enum"), nullable=False)
     formato = Column(String(30), nullable=True)
@@ -80,7 +75,9 @@ class Asset(Base):
     campanha = Column(Text, nullable=True)
     cliente = Column(Text, nullable=True)
 
-    tags = Column(ARRAY(String), nullable=True)
+    # Usando JSON para funcionar em SQLite e Postgres
+    # Pydantic já trata como List[str] no schema
+    tags = Column(JSON, nullable=True)
 
     autor_equipe = Column(Text, nullable=True)
     direitos_expira_em = Column(Date, nullable=True)
@@ -162,6 +159,7 @@ class Collection(Base):
 
 class CollectionItem(Base):
     __tablename__ = "collection_items"
+
     collection_id = Column(
         BigInteger,
         ForeignKey("collections.id", ondelete="CASCADE"),
