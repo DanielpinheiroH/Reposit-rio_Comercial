@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from .core.config import get_settings
 from .database import Base, engine
 from .routers import (
@@ -16,6 +17,8 @@ from .routers import (
 )
 
 settings = get_settings()
+
+# cria tabelas no sqlite
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -23,15 +26,19 @@ app = FastAPI(
     debug=settings.API_DEBUG,
 )
 
-if settings.API_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(o) for o in settings.API_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# CORS direto (sem depender de env) para o frontend Vite
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Rotas
 app.include_router(health.router, prefix=settings.API_V1_STR)
 app.include_router(conteudo_especial.router, prefix=settings.API_V1_STR)
 app.include_router(live_youtube.router, prefix=settings.API_V1_STR)
