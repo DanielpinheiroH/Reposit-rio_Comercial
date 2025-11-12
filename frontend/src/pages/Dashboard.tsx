@@ -1,61 +1,61 @@
 import React from "react";
-import { useOutletContext } from "react-router-dom";
-import type { LayoutContext } from "../types/layout";
+import { Card } from "../components/ui/Card";
 
 export const Dashboard: React.FC = () => {
-  const { isOk, loading, error } = useOutletContext<LayoutContext>();
-
   return (
     <section className="space-y-6">
+      {/* Bloco 1: boas-vindas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-        {/* Visão geral */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col gap-2">
-          <div className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
+        <Card className="bg-red-900/30 border-red-900/60 text-red-50">
+          <div className="text-[10px] uppercase tracking-[0.16em] text-red-200/80">
             Visão geral
           </div>
-          <div className="text-sm text-slate-200">
+          <div className="text-sm text-white mt-1">
             Bem-vindo ao Repositório Comercial.
           </div>
-          <p className="text-[10px] text-slate-500">
-            Central único para todos os conteúdos, coleções e resultados comerciais.
+          <p className="text-[10px] text-red-200/80 mt-1">
+            Acompanhe conteúdos especiais, posts, coleções e métricas em um painel único.
           </p>
-        </div>
+        </Card>
 
-        {/* Status da API */}
-        <div className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 flex flex-col gap-1 text-[10px] text-slate-400">
-          <div className="uppercase tracking-[0.16em] text-slate-500">
-            Status da API
+        <Card className="bg-red-900/20 border-red-900/40 text-red-50">
+          <div className="text-[10px] uppercase tracking-[0.16em] text-red-200/80">
+            Conteúdos
           </div>
-          <div className="flex items-center gap-2 mt-1">
-            <span
-              className={`h-2 w-2 rounded-full ${
-                loading ? "bg-amber-400" : isOk ? "bg-emerald-400" : "bg-red-500"
-              }`}
-            />
-            <span>
-              {loading
-                ? "Checando conexão com o backend..."
-                : error
-                ? error
-                : isOk
-                ? "Conectado. Pronto para consumir dados reais."
-                : "API não respondeu como esperado."}
-            </span>
+          <div className="mt-1 text-xs font-medium text-white">
+            Base estruturada
           </div>
-        </div>
+          <p className="mt-1 text-[10px] text-red-200/80">
+            Cadastre e consulte ativos por tipo, cliente, campanha, plataforma e tags.
+          </p>
+        </Card>
 
-        {/* Próximos passos */}
-        <div className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 text-[10px] text-slate-400 flex flex-col">
-          <div className="uppercase tracking-[0.16em] text-slate-500">
-            Próximos passos
+        <Card className="bg-white text-red-950 border-red-200">
+          <div className="text-[10px] uppercase tracking-[0.16em] text-red-700/80">
+            Métricas
           </div>
-          <ul className="mt-2 space-y-1 list-disc list-inside">
-            <li>Listar conteúdos especiais via API.</li>
-            <li>Criar visão de posts & shorts por plataforma.</li>
-            <li>Organizar coleções por campanha/segmento.</li>
-            <li>Exibir métricas consolidadas por asset.</li>
-          </ul>
-        </div>
+          <div className="mt-1 text-xs font-medium text-red-900">
+            Performance integrada
+          </div>
+          <p className="mt-1 text-[10px] text-red-700/80">
+            Em breve: consolidação de resultados por plataforma.
+          </p>
+        </Card>
+      </div>
+
+      {/* Bloco 2: atalho pra áreas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5">
+        {[
+          { title: "Conteúdos especiais", desc: "Matérias, vídeos e páginas especiais." },
+          { title: "Posts & Shorts", desc: "Instagram, TikTok, Kwai e YouTube Shorts." },
+          { title: "Coleções", desc: "Organização por campanha/tema/segmento." },
+          { title: "Métricas", desc: "Visão de performance e evolução." },
+        ].map((box) => (
+          <Card key={box.title} className="bg-red-900/20 border-red-900/40 text-red-50 hover:bg-red-900/30 transition">
+            <div className="text-xs font-medium text-white">{box.title}</div>
+            <p className="text-[10px] text-red-200/80 mt-1">{box.desc}</p>
+          </Card>
+        ))}
       </div>
     </section>
   );
