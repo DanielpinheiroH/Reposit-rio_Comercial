@@ -1,97 +1,62 @@
 import React, { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
-import { api } from "../lib/api";
-import type { LayoutContext } from "../types/layout";
-
-type Colecao = {
-  id: number;
-  nome: string;
-  descricao?: string;
-  created_at?: string;
-};
+import { listCollections, type Collection } from "../lib/collections";
 
 export const Colecoes: React.FC = () => {
-  const { isOk } = useOutletContext<LayoutContext>();
-  const [items, setItems] = useState<Colecao[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState("");
+  const [state, setState] = useState<{loading: boolean; error: string; data: Collection[]}>({
+    loading: true,
+    error: "",
+    data: [],
+  });
 
   useEffect(() => {
-    if (!isOk) return;
-    async function fetchColecoes() {
+    (async () => {
+      setState((s) => ({ ...s, loading: true, error: "" }));
       try {
-        setLoading(true);
-        setErro("");
-        // Ajuste ao seu router: ex: GET /collections
-        const res = await api.get<Colecao[]>("/collections");
-        setItems(res.data);
+        const data = await listCollections();
+        setState({ loading: false, error: "", data });
       } catch (e: any) {
-        console.error(e);
-        setErro("Não consegui carregar as coleções.");
-      } finally {
-        setLoading(false);
+        setState({ loading: false, error: "Falha ao carregar coleções.", data: [] });
       }
-    }
-    fetchColecoes();
-  }, [isOk]);
+    })();
+  }, []);
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-baseline justify-between gap-2">
+    <section className="space-y-6">
+      <div className="flex items-end justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-50">
-            Coleções
-          </h2>
-          <p className="text-[10px] text-slate-500">
-            Agrupamentos de conteúdos por campanha, cliente, segmento ou uso interno.
+          <h3 className="text-lg font-semibold text-slate-100">Coleções</h3>
+          <p className="text-xs text-slate-500">
+            Grupos temáticos de assets (campanhas, segmentos, dossiês).
           </p>
         </div>
-        <button
-          className="px-3 py-1.5 rounded-lg bg-emerald-500/90 text-slate-950 text-[10px] font-semibold hover:bg-emerald-400 transition-colors"
-          disabled
-        >
-          + Nova coleção
-        </button>
+        <div className="text-xs text-slate-500">
+          {state.loading ? "Carregando…" : `${state.data.length} coleção(ões)`}
+        </div>
       </div>
 
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-        <div className="px-3 py-2 border-b border-slate-800 text-[9px] text-slate-500 flex justify-between">
-          <span>Lista de coleções</span>
-          {loading && <span>Carregando...</span>}
-          {erro && <span className="text-red-400">{erro}</span>}
-        </div>
+      {state.error && <div className="text-red-400 text-sm">{state.error}</div>}
 
-        <div className="divide-y divide-slate-900/80 text-[10px]">
-          {items.length === 0 && !loading && !erro && (
-            <div className="px-3 py-3 text-slate-500">
-              Nenhuma coleção cadastrada ainda.
-            </div>
-          )}
-
-          {items.map((c) => (
-            <div
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+        {state.data.map((c) => {
+          const count = c.assets?.length ?? 0;
+          return (
+            <article
               key={c.id}
-              className="px-3 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-1 hover:bg-slate-900/70"
+              className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col gap-2"
             >
-              <div>
-                <div className="text-slate-100 text-xs font-medium">
-                  {c.nome}
-                </div>
-                {c.descricao && (
-                  <div className="text-slate-500">
-                    {c.descricao}
-                  </div>
-                )}
+              <div className="text-[10px] uppercase tracking-wider text-slate-500">
+                Coleção
               </div>
-              <div className="text-[9px] text-slate-500">
-                {c.created_at &&
-                  `Criada em ${new Date(c.created_at).toLocaleDateString(
-                    "pt-BR"
-                  )}`}
+              <h4 className="text-sm text-slate-100">{c.nome}</h4>
+              {c.descricao && (
+                <p className="text-[11px] text-slate-400 line-clamp-2">{c.descricao}</p>
+              )}
+              <div className="mt-2 text-[10px] text-slate-500">
+                {count} item(ns)
               </div>
-            </div>
-          ))}
-        </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
