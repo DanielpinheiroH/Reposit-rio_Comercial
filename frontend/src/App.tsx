@@ -1,4 +1,3 @@
-import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
@@ -17,6 +16,8 @@ function App() {
           <Route path="/posts-shorts" element={<PostsShorts />} />
           <Route path="/colecoes" element={<Colecoes />} />
           <Route path="/metricas" element={<Metricas />} />
+          {/* Rota “vazia” só para acionar o modal */}
+          <Route path="/projeto/novo" element={<div />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
