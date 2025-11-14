@@ -2,9 +2,12 @@ from datetime import datetime, date
 from typing import Optional, List, Literal
 from pydantic import BaseModel, Field, HttpUrl, ConfigDict
 
-YTShortsFormato = Literal["shorts"]
 
-class PostYouTubeShortsBase(BaseModel):
+YouTubeTalkFormato = Literal["big_talk", "one_talk", "little_talk"]
+
+
+class YouTubeTalkBase(BaseModel):
+    # Campos comuns
     titulo: str = Field(..., max_length=500)
     descricao: Optional[str] = None
     url: HttpUrl
@@ -14,21 +17,26 @@ class PostYouTubeShortsBase(BaseModel):
     data_publicacao: Optional[datetime] = None
     duracao_seg: Optional[int] = Field(None, ge=0)
 
+    # Organização
     segmento: Optional[str] = None
     campanha: Optional[str] = None
-    cliente: Optional[str] = None
+    cliente: Optional[str] = None  # "Anunciante"
     tags: Optional[List[str]] = None
 
+    # Autoria / direitos / observações
     autor_equipe: Optional[str] = None
     direitos_expira_em: Optional[date] = None
     observacoes: Optional[str] = None
 
-    formato: Optional[YTShortsFormato] = None  # "shorts"
+    # Específico
+    formato: Optional[YouTubeTalkFormato] = None  # big_talk | one_talk | little_talk
 
-class PostYouTubeShortsCreate(PostYouTubeShortsBase):
+
+class YouTubeTalkCreate(YouTubeTalkBase):
     pass
 
-class PostYouTubeShortsUpdate(BaseModel):
+
+class YouTubeTalkUpdate(BaseModel):
     titulo: Optional[str] = Field(None, max_length=500)
     descricao: Optional[str] = None
     url: Optional[HttpUrl] = None
@@ -47,9 +55,10 @@ class PostYouTubeShortsUpdate(BaseModel):
     direitos_expira_em: Optional[date] = None
     observacoes: Optional[str] = None
 
-    formato: Optional[YTShortsFormato] = None
+    formato: Optional[YouTubeTalkFormato] = None
 
-class PostYouTubeShortsOut(PostYouTubeShortsBase):
+
+class YouTubeTalkOut(YouTubeTalkBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int

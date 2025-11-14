@@ -1,8 +1,9 @@
 from datetime import datetime, date
 from typing import List, Optional, Literal
-from pydantic import BaseModel, AnyHttpUrl, field_validator
+from pydantic import BaseModel, AnyHttpUrl, field_validator, ConfigDict
 
 
+# Tipos de asset suportados
 TipoAsset = Literal[
     "conteudo_especial",
     "live_youtube",
@@ -13,6 +14,7 @@ TipoAsset = Literal[
     "post_youtube_shorts",
 ]
 
+# Plataformas suportadas (mantém alinhado ao models.PlataformaEnum)
 Plataforma = Literal[
     "site",
     "youtube",
@@ -22,6 +24,7 @@ Plataforma = Literal[
     "youtube_shorts",
 ]
 
+# Classes editoriais (alinhado ao models.ClassConteudoEnum)
 ClassConteudo = Literal[
     "Publicidade",
     "Nativa",
@@ -55,12 +58,12 @@ class AssetBaseCommon(BaseModel):
     @field_validator("tags", mode="before")
     @classmethod
     def split_tags(cls, v):
+        # aceita "tag1, tag2, tag3" -> ["tag1", "tag2", "tag3"]
         if isinstance(v, str):
             return [t.strip() for t in v.split(",") if t.strip()]
         return v
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AssetOutCommon(AssetBaseCommon):

@@ -25,6 +25,7 @@ class TipoAssetEnum(str, enum.Enum):
     post_tiktok = "post_tiktok"
     post_kwai = "post_kwai"
     post_youtube_shorts = "post_youtube_shorts"
+    post_facebook = "post_facebook"  # <- NOVO
 
 
 class PlataformaEnum(str, enum.Enum):
@@ -34,6 +35,7 @@ class PlataformaEnum(str, enum.Enum):
     tiktok = "tiktok"
     kwai = "kwai"
     youtube_shorts = "youtube_shorts"
+    facebook = "facebook"  # <- NOVO
 
 
 class ClassConteudoEnum(str, enum.Enum):
@@ -54,7 +56,7 @@ class Asset(Base):
 
     tipo_asset = Column(Enum(TipoAssetEnum, name="tipo_asset_enum"), nullable=False)
     plataforma = Column(Enum(PlataformaEnum, name="plataforma_enum"), nullable=False)
-    formato = Column(String(30), nullable=True)
+    formato = Column(String(30), nullable=True)  # ex.: 'feed', 'stories', 'reels', 'big_talk'
 
     titulo = Column(Text, nullable=False)
     descricao = Column(Text, nullable=True)
@@ -75,8 +77,7 @@ class Asset(Base):
     campanha = Column(Text, nullable=True)
     cliente = Column(Text, nullable=True)
 
-    # Usando JSON para funcionar em SQLite e Postgres
-    # Pydantic já trata como List[str] no schema
+    # Portável p/ SQLite e Postgres
     tags = Column(JSON, nullable=True)
 
     autor_equipe = Column(Text, nullable=True)

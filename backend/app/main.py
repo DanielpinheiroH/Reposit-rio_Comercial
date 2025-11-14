@@ -1,3 +1,4 @@
+# backend/app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,12 +7,13 @@ from .database import Base, engine
 from .routers import (
     health,
     conteudo_especial,
-    live_youtube,
+    live_youtube,          # <- talks (big_talk | one_talk | little_talk) via formato
     social_testemunhal,
     post_instagram,
     post_tiktok,
     post_kwai,
     post_youtube_shorts,
+    post_facebook,        # <- NOVO (Facebook Feed)
     metrics,
     collections,
 )
@@ -26,7 +28,7 @@ app = FastAPI(
     debug=settings.API_DEBUG,
 )
 
-# CORS direto (sem depender de env) para o frontend Vite
+# CORS para o frontend Vite
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -41,11 +43,12 @@ app.add_middleware(
 # Rotas
 app.include_router(health.router, prefix=settings.API_V1_STR)
 app.include_router(conteudo_especial.router, prefix=settings.API_V1_STR)
-app.include_router(live_youtube.router, prefix=settings.API_V1_STR)
+app.include_router(live_youtube.router, prefix=settings.API_V1_STR)         # YouTube + Talks
 app.include_router(social_testemunhal.router, prefix=settings.API_V1_STR)
 app.include_router(post_instagram.router, prefix=settings.API_V1_STR)
 app.include_router(post_tiktok.router, prefix=settings.API_V1_STR)
 app.include_router(post_kwai.router, prefix=settings.API_V1_STR)
 app.include_router(post_youtube_shorts.router, prefix=settings.API_V1_STR)
+app.include_router(post_facebook.router, prefix=settings.API_V1_STR)        # Facebook Feed
 app.include_router(metrics.router, prefix=settings.API_V1_STR)
 app.include_router(collections.router, prefix=settings.API_V1_STR)
