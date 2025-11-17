@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 
 const linkBase =
-  "px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors";
+  "px-3 py-2 rounded-lg text-base flex items-center justify-between transition-colors";
 const inactive = "text-red-100/80 hover:bg-red-900/40";
 const active = "bg-red-900/60 text-white border border-red-800";
 
 const groupHeader =
-  "w-full flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-red-300/80 px-1 mt-4";
+  "w-full flex items-center justify-between text-sm uppercase tracking-[0.16em] text-red-300/80 px-1 mt-4";
 
 const subBase =
-  "mt-1 px-3 py-1.5 rounded-lg text-[11px] flex items-center justify-between transition-colors";
+  "mt-1 px-3 py-1.5 rounded-lg text-base flex items-center justify-between transition-colors";
 const subInactive = "text-red-100/70 hover:bg-red-900/30";
 const subActive = "bg-red-900/70 text-white border border-red-700";
 
@@ -53,14 +53,16 @@ export const Sidebar: React.FC = () => {
       {/* Logo */}
       <div className="px-6 py-6 border-b border-red-900">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center text-red-700 font-extrabold text-lg">
+          <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center text-red-700 font-extrabold text-xl">
             R
           </div>
           <div>
-            <h1 className="font-semibold text-sm uppercase tracking-[0.16em] text-red-200/80">
+            <h1 className="font-semibold text-base uppercase tracking-[0.16em] text-red-200/80">
               Repositório
             </h1>
-            <p className="text-sm font-medium text-white">Comercial</p>
+            <p className="text-lg font-semibold text-white">
+              Comercial
+            </p>
           </div>
         </div>
       </div>
@@ -199,11 +201,39 @@ export const Sidebar: React.FC = () => {
           {openYoutube && (
             <div className="mt-1 space-y-0.5">
               <Link
+                to="/posts-shorts?plataforma=youtube&tipo=live"
+                className={
+                  subBase +
+                  " " +
+                  (isPosts("youtube", "live")
+                    ? subActive
+                    : subInactive)
+                }
+              >
+                <span>Lives no YouTube</span>
+              </Link>
+
+              <Link
+                to="/posts-shorts?plataforma=youtube&tipo=talks"
+                className={
+                  subBase +
+                  " " +
+                  (isPosts("youtube", "talks")
+                    ? subActive
+                    : subInactive)
+                }
+              >
+                <span>YouTube Talks (Big / One / Little)</span>
+              </Link>
+
+              <Link
                 to="/posts-shorts?plataforma=youtube_shorts"
                 className={
                   subBase +
                   " " +
-                  (isPosts("youtube_shorts") ? subActive : subInactive)
+                  (isPosts("youtube_shorts")
+                    ? subActive
+                    : subInactive)
                 }
               >
                 <span>YouTube Shorts</span>
@@ -284,7 +314,9 @@ export const Sidebar: React.FC = () => {
                 className={
                   subBase +
                   " " +
-                  (isPosts("tiktok", "feed") ? subActive : subInactive)
+                  (isPosts("tiktok", "feed")
+                    ? subActive
+                    : subInactive)
                 }
               >
                 <span>Feed / Vídeos curtos</span>
@@ -317,7 +349,9 @@ export const Sidebar: React.FC = () => {
                 className={
                   subBase +
                   " " +
-                  (isPosts("kwai", "feed") ? subActive : subInactive)
+                  (isPosts("kwai", "feed")
+                    ? subActive
+                    : subInactive)
                 }
               >
                 <span>Feed / Vídeos</span>
@@ -407,7 +441,7 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Rodapé sidebar */}
-      <div className="px-4 py-4 border-t border-red-900 text-[10px] text-red-200/70">
+      <div className="px-4 py-4 border-t border-red-900 text-sm text-red-200/70">
         v0.1 • ambiente local
       </div>
     </aside>
