@@ -1,9 +1,10 @@
+# backend/app/schemas/asset_common.py
+
 from datetime import datetime, date
 from typing import List, Optional, Literal
 from pydantic import BaseModel, AnyHttpUrl, field_validator, ConfigDict
 
-
-# Tipos de asset suportados
+# Tipos de asset suportados (espelhando os principais TipoAssetEnum usados)
 TipoAsset = Literal[
     "conteudo_especial",
     "live_youtube",
@@ -12,17 +13,23 @@ TipoAsset = Literal[
     "post_tiktok",
     "post_kwai",
     "post_youtube_shorts",
+    "post_facebook",
+    "youtube_talk",
 ]
 
-# Plataformas suportadas (mantém alinhado ao models.PlataformaEnum)
-Plataforma = Literal[
+# Plataformas suportadas (alinhado ao models.PlataformaEnum)
+PlataformaLiteral = Literal[
     "site",
     "youtube",
     "instagram",
     "tiktok",
     "kwai",
     "youtube_shorts",
+    "facebook",
 ]
+
+# (Se quiser manter o nome curto também)
+Plataforma = PlataformaLiteral
 
 # Classes editoriais (alinhado ao models.ClassConteudoEnum)
 ClassConteudo = Literal[
@@ -68,9 +75,13 @@ class AssetBaseCommon(BaseModel):
 
 class AssetOutCommon(AssetBaseCommon):
     id: int
+    # aqui deixamos str para aceitar qualquer enum que vier do models,
+    # pydantic converte Enum -> str automaticamente
     tipo_asset: str
     plataforma: str
     formato: Optional[str] = None
     classificacao_conteudo_especial: Optional[ClassConteudo] = None
     created_at: datetime
     updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

@@ -3,13 +3,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from .. import models
-from ..models import TipoAssetEnum, PlataformaEnum
-from ..schemas.post_tiktok import (
-    PostTikTokCreate,
-    PostTikTokUpdate,
-    PostTikTokOut,
-)
+from .. import models, schemas
 from .assets_base import (
     create_asset,
     list_assets,
@@ -21,21 +15,23 @@ from .assets_base import (
 
 def create_post_tiktok(
     db: Session,
-    payload: PostTikTokCreate,
+    data: schemas.PostTikTokCreate,
 ) -> models.Asset:
     """
-    Cria um asset do tipo Post TikTok:
-    - tipo_asset = post_tiktok
-    - plataforma = tiktok
+    Cria um Asset do tipo post_tiktok na plataforma tiktok.
     """
-    data = payload.model_dump()
-    data.update(
+    payload = data.model_dump()
+    payload.update(
         {
-            "tipo_asset": TipoAssetEnum.post_tiktok,
-            "plataforma": PlataformaEnum.tiktok,
+            "tipo_asset": models.TipoAssetEnum.post_tiktok,
+            "plataforma": models.PlataformaEnum.tiktok,
         }
     )
-    return create_asset(db, data)
+    # se quiser forçar formato padrão:
+    if not payload.get("formato"):
+        payload["formato"] = "feed"
+
+    return create_asset(db, payload)
 
 
 def list_posts_tiktok(
@@ -46,15 +42,14 @@ def list_posts_tiktok(
     search: Optional[str] = None,
     skip: int = 0,
     limit: int = 50,
-) -> List[PostTikTokOut]:
+) -> List[models.Asset]:
     """
-    Lista posts do TikTok com filtros opcionais.
-    TikTokFormato atualmente = 'feed'.
+    Lista posts de TikTok com filtros opcionais.
     """
     items = list_assets(
         db=db,
-        tipo_asset=TipoAssetEnum.post_tiktok.value,
-        plataforma=PlataformaEnum.tiktok.value,
+        tipo_asset=models.TipoAssetEnum.post_tiktok,
+        plataforma=models.PlataformaEnum.tiktok,
         formato=formato,
         campanha=campanha,
         cliente=cliente,
@@ -68,13 +63,12 @@ def list_posts_tiktok(
 def get_post_tiktok(
     db: Session,
     asset_id: int,
-):
+) -> Optional[models.Asset]:
     """
-    Busca um Post TikTok garantindo o tipo correto.
-    Retorna None se não for post_tiktok.
+    Busca um post do TikTok pelo ID.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_tiktok:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_tiktok:
         return None
     return asset
 
@@ -82,22 +76,17 @@ def get_post_tiktok(
 def update_post_tiktok(
     db: Session,
     asset_id: int,
-    payload: PostTikTokUpdate,
-):
+    data: schemas.PostTikTokUpdate,
+) -> Optional[models.Asset]:
     """
-    Atualiza um Post TikTok.
-    Não permite trocar tipo_asset/plataforma.
+    Atualiza um post do TikTok. Retorna None se não existir ou tipo diferente.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_tiktok:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_tiktok:
         return None
 
-    data = payload.model_dump(exclude_unset=True)
-    # Blindagem extra
-    data.pop("tipo_asset", None)
-    data.pop("plataforma", None)
-
-    updated = update_asset(db, asset, data)
+    payload = data.model_dump(exclude_unset=True)
+    updated = update_asset(db, asset, payload)
     return updated
 
 
@@ -106,14 +95,20 @@ def delete_post_tiktok(
     asset_id: int,
 ) -> bool:
     """
-    Deleta um Post TikTok.
-    Retorna:
-    - True se deletou
-    - False se não encontrou / tipo errado.
+    Deleta um post do TikTok. Retorna False se não existir ou tipo diferente.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_tiktok:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_tiktok:
         return False
 
     delete_asset(db, asset_id)
     return True
+
+
+# -------------------------------------------------------------------
+# Aliases de compatibilidade com código legado
+# (ex.: crud.__init__.py importando create_tiktok_post, list_tiktok_posts)
+# -------------------------------------------------------------------
+
+create_tiktok_post = create_post_tiktok
+list_tiktok_posts = list_posts_tiktok

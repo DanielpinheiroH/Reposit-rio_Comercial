@@ -3,13 +3,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from .. import models
-from ..models import TipoAssetEnum, PlataformaEnum
-from ..schemas.post_instagram import (
-    PostInstagramCreate,
-    PostInstagramUpdate,
-    PostInstagramOut,
-)
+from .. import models, schemas
 from .assets_base import (
     create_asset,
     list_assets,
@@ -21,21 +15,19 @@ from .assets_base import (
 
 def create_post_instagram(
     db: Session,
-    payload: PostInstagramCreate,
+    data: schemas.PostInstagramCreate,
 ) -> models.Asset:
     """
-    Cria um asset do tipo Post Instagram, fixando:
-    - tipo_asset = post_instagram
-    - plataforma = instagram
+    Cria um Asset do tipo post_instagram na plataforma instagram.
     """
-    data = payload.model_dump()
-    data.update(
+    payload = data.model_dump()
+    payload.update(
         {
-            "tipo_asset": TipoAssetEnum.post_instagram,
-            "plataforma": PlataformaEnum.instagram,
+            "tipo_asset": models.TipoAssetEnum.post_instagram,
+            "plataforma": models.PlataformaEnum.instagram,
         }
     )
-    return create_asset(db, data)
+    return create_asset(db, payload)
 
 
 def list_posts_instagram(
@@ -46,14 +38,14 @@ def list_posts_instagram(
     search: Optional[str] = None,
     skip: int = 0,
     limit: int = 50,
-) -> List[PostInstagramOut]:
+) -> List[models.Asset]:
     """
     Lista posts de Instagram com filtros opcionais.
     """
-    assets = list_assets(
+    items = list_assets(
         db=db,
-        tipo_asset=TipoAssetEnum.post_instagram.value,
-        plataforma=PlataformaEnum.instagram.value,
+        tipo_asset=models.TipoAssetEnum.post_instagram,
+        plataforma=models.PlataformaEnum.instagram,
         formato=formato,
         campanha=campanha,
         cliente=cliente,
@@ -61,19 +53,18 @@ def list_posts_instagram(
         skip=skip,
         limit=limit,
     )
-    return assets  # será convertido para PostInstagramOut pelo response_model
+    return items
 
 
 def get_post_instagram(
     db: Session,
     asset_id: int,
-):
+) -> Optional[models.Asset]:
     """
-    Busca um Post Instagram garantindo o tipo correto.
-    Retorna None se não for do tipo post_instagram.
+    Busca um post do Instagram pelo ID, garantindo que o tipo seja post_instagram.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_instagram:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_instagram:
         return None
     return asset
 
@@ -81,22 +72,17 @@ def get_post_instagram(
 def update_post_instagram(
     db: Session,
     asset_id: int,
-    payload: PostInstagramUpdate,
-):
+    data: schemas.PostInstagramUpdate,
+) -> Optional[models.Asset]:
     """
-    Atualiza um Post Instagram.
-    Não permite trocar tipo_asset/plataforma.
+    Atualiza um post do Instagram. Retorna None se não existir ou não for do tipo correto.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_instagram:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_instagram:
         return None
 
-    data = payload.model_dump(exclude_unset=True)
-    # Blindagem, caso alguém tente mandar isso no body:
-    data.pop("tipo_asset", None)
-    data.pop("plataforma", None)
-
-    updated = update_asset(db, asset, data)
+    payload = data.model_dump(exclude_unset=True)
+    updated = update_asset(db, asset, payload)
     return updated
 
 
@@ -105,14 +91,24 @@ def delete_post_instagram(
     asset_id: int,
 ) -> bool:
     """
-    Deleta um Post Instagram.
-    Retorna:
-    - True se deletou
-    - False se não encontrou / tipo errado
+    Deleta um post do Instagram. Retorna False se não existir ou tipo diferente.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_instagram:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_instagram:
         return False
 
     delete_asset(db, asset_id)
     return True
+
+
+# -------------------------------------------------------------------
+# Aliases de compatibilidade com código legado
+# (ex.: crud.__init__.py ainda importando create_instagram_post, etc.)
+# -------------------------------------------------------------------
+
+# Assinaturas antigas:
+#   create_instagram_post(db, data)
+#   list_instagram_posts(db, formato=None, search=None, skip=0, limit=50)
+
+create_instagram_post = create_post_instagram
+list_instagram_posts = list_posts_instagram

@@ -3,13 +3,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from .. import models
-from ..models import TipoAssetEnum, PlataformaEnum
-from ..schemas.post_youtube_shorts import (
-    PostYouTubeShortsCreate,
-    PostYouTubeShortsUpdate,
-    PostYouTubeShortsOut,
-)
+from .. import models, schemas
 from .assets_base import (
     create_asset,
     list_assets,
@@ -21,21 +15,24 @@ from .assets_base import (
 
 def create_post_youtube_shorts(
     db: Session,
-    payload: PostYouTubeShortsCreate,
+    data: schemas.PostYouTubeShortsCreate,
 ) -> models.Asset:
     """
-    Cria um asset do tipo YouTube Shorts:
-    - tipo_asset = post_youtube_shorts
-    - plataforma = youtube_shorts
+    Cria um Asset do tipo post_youtube_shorts na plataforma youtube_shorts.
     """
-    data = payload.model_dump()
-    data.update(
+    payload = data.model_dump()
+    payload.update(
         {
-            "tipo_asset": TipoAssetEnum.post_youtube_shorts,
-            "plataforma": PlataformaEnum.youtube_shorts,
+            "tipo_asset": models.TipoAssetEnum.post_youtube_shorts,
+            "plataforma": models.PlataformaEnum.youtube_shorts,
         }
     )
-    return create_asset(db, data)
+
+    # Força formato padrão "shorts" se não vier
+    if not payload.get("formato"):
+        payload["formato"] = "shorts"
+
+    return create_asset(db, payload)
 
 
 def list_posts_youtube_shorts(
@@ -46,15 +43,14 @@ def list_posts_youtube_shorts(
     search: Optional[str] = None,
     skip: int = 0,
     limit: int = 50,
-) -> List[PostYouTubeShortsOut]:
+) -> List[models.Asset]:
     """
-    Lista YouTube Shorts com filtros opcionais.
-    YTShortsFormato atualmente = 'shorts'.
+    Lista posts de YouTube Shorts com filtros opcionais.
     """
     items = list_assets(
         db=db,
-        tipo_asset=TipoAssetEnum.post_youtube_shorts.value,
-        plataforma=PlataformaEnum.youtube_shorts.value,
+        tipo_asset=models.TipoAssetEnum.post_youtube_shorts,
+        plataforma=models.PlataformaEnum.youtube_shorts,
         formato=formato,
         campanha=campanha,
         cliente=cliente,
@@ -68,13 +64,12 @@ def list_posts_youtube_shorts(
 def get_post_youtube_shorts(
     db: Session,
     asset_id: int,
-):
+) -> Optional[models.Asset]:
     """
-    Busca um YouTube Shorts garantindo o tipo correto.
-    Retorna None se não for post_youtube_shorts.
+    Busca um YouTube Shorts pelo ID.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_youtube_shorts:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_youtube_shorts:
         return None
     return asset
 
@@ -82,22 +77,17 @@ def get_post_youtube_shorts(
 def update_post_youtube_shorts(
     db: Session,
     asset_id: int,
-    payload: PostYouTubeShortsUpdate,
-):
+    data: schemas.PostYouTubeShortsUpdate,
+) -> Optional[models.Asset]:
     """
-    Atualiza um YouTube Shorts.
-    Não permite trocar tipo_asset/plataforma.
+    Atualiza um YouTube Shorts. Retorna None se não existir ou tipo diferente.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_youtube_shorts:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_youtube_shorts:
         return None
 
-    data = payload.model_dump(exclude_unset=True)
-    # Blindagem extra
-    data.pop("tipo_asset", None)
-    data.pop("plataforma", None)
-
-    updated = update_asset(db, asset, data)
+    payload = data.model_dump(exclude_unset=True)
+    updated = update_asset(db, asset, payload)
     return updated
 
 
@@ -106,14 +96,20 @@ def delete_post_youtube_shorts(
     asset_id: int,
 ) -> bool:
     """
-    Deleta um YouTube Shorts.
-    Retorna:
-    - True se deletou
-    - False se não encontrou / tipo errado.
+    Deleta um YouTube Shorts. Retorna False se não existir ou tipo diferente.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_youtube_shorts:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_youtube_shorts:
         return False
 
     delete_asset(db, asset_id)
     return True
+
+
+# -------------------------------------------------------------------
+# Aliases de compatibilidade com código legado
+# (ex.: crud.__init__.py importando create_youtube_shorts, list_youtube_shorts)
+# -------------------------------------------------------------------
+
+create_youtube_shorts = create_post_youtube_shorts
+list_youtube_shorts = list_posts_youtube_shorts

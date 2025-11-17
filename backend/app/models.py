@@ -1,3 +1,4 @@
+# backend/app/models.py
 import enum
 from sqlalchemy import (
     Column,
@@ -20,12 +21,13 @@ from .database import Base
 class TipoAssetEnum(str, enum.Enum):
     conteudo_especial = "conteudo_especial"
     live_youtube = "live_youtube"
+    youtube_talk = "youtube_talk"  # <- NOVO, usado pelos schemas/routers youtube_talk e pelo SUGGESTED_FORMATS
     social_video_testemunhal = "social_video_testemunhal"
     post_instagram = "post_instagram"
     post_tiktok = "post_tiktok"
     post_kwai = "post_kwai"
     post_youtube_shorts = "post_youtube_shorts"
-    post_facebook = "post_facebook"  # <- NOVO
+    post_facebook = "post_facebook"  # Facebook Feed
 
 
 class PlataformaEnum(str, enum.Enum):
@@ -35,7 +37,7 @@ class PlataformaEnum(str, enum.Enum):
     tiktok = "tiktok"
     kwai = "kwai"
     youtube_shorts = "youtube_shorts"
-    facebook = "facebook"  # <- NOVO
+    facebook = "facebook"  # Facebook
 
 
 class ClassConteudoEnum(str, enum.Enum):
@@ -85,7 +87,11 @@ class Asset(Base):
 
     observacoes = Column(Text, nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -93,7 +99,11 @@ class Asset(Base):
         nullable=False,
     )
 
-    metrics = relationship("Metric", back_populates="asset", cascade="all, delete-orphan")
+    metrics = relationship(
+        "Metric",
+        back_populates="asset",
+        cascade="all, delete-orphan",
+    )
     collections = relationship(
         "Collection",
         secondary="collection_items",
@@ -115,8 +125,15 @@ class Metric(Base):
     __tablename__ = "metrics"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    asset_id = Column(BigInteger, ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
-    plataforma = Column(Enum(PlataformaEnum, name="plataforma_enum"), nullable=False)
+    asset_id = Column(
+        BigInteger,
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    plataforma = Column(
+        Enum(PlataformaEnum, name="plataforma_enum"),
+        nullable=False,
+    )
 
     capturado_em = Column(
         DateTime(timezone=True),
@@ -143,7 +160,11 @@ class Collection(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     nome = Column(Text, nullable=False)
     descricao = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -177,14 +198,22 @@ class Attachment(Base):
     __tablename__ = "attachments"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    asset_id = Column(BigInteger, ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    asset_id = Column(
+        BigInteger,
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
     nome_arquivo = Column(Text, nullable=False)
     tipo_mime = Column(String(255), nullable=True)
     url_arquivo = Column(Text, nullable=False)
     tamanho_bytes = Column(BigInteger, nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
 
     asset = relationship("Asset", back_populates="attachments")
 
@@ -193,7 +222,11 @@ class PessoaTestemunho(Base):
     __tablename__ = "pessoas_testemunho"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    asset_id = Column(BigInteger, ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    asset_id = Column(
+        BigInteger,
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
     nome = Column(Text, nullable=False)
     cargo = Column(Text, nullable=True)

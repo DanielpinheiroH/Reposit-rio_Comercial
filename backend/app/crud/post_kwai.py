@@ -3,13 +3,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from .. import models
-from ..models import TipoAssetEnum, PlataformaEnum
-from ..schemas.post_kwai import (
-    PostKwaiCreate,
-    PostKwaiUpdate,
-    PostKwaiOut,
-)
+from .. import models, schemas
 from .assets_base import (
     create_asset,
     list_assets,
@@ -21,22 +15,24 @@ from .assets_base import (
 
 def create_post_kwai(
     db: Session,
-    payload: PostKwaiCreate,
+    data: schemas.PostKwaiCreate,
 ) -> models.Asset:
     """
-    Cria um asset do tipo Post Kwai:
-    - tipo_asset = post_kwai
-    - plataforma = kwai
-    - formato geralmente = 'feed' (controlado no schema/camada de chamada)
+    Cria um Asset do tipo post_kwai na plataforma kwai.
     """
-    data = payload.model_dump()
-    data.update(
+    payload = data.model_dump()
+    payload.update(
         {
-            "tipo_asset": TipoAssetEnum.post_kwai,
-            "plataforma": PlataformaEnum.kwai,
+            "tipo_asset": models.TipoAssetEnum.post_kwai,
+            "plataforma": models.PlataformaEnum.kwai,
         }
     )
-    return create_asset(db, data)
+
+    # se quiser forçar formato padrão:
+    if not payload.get("formato"):
+        payload["formato"] = "feed"
+
+    return create_asset(db, payload)
 
 
 def list_posts_kwai(
@@ -47,15 +43,14 @@ def list_posts_kwai(
     search: Optional[str] = None,
     skip: int = 0,
     limit: int = 50,
-) -> List[PostKwaiOut]:
+) -> List[models.Asset]:
     """
     Lista posts do Kwai com filtros opcionais.
-    KwaiFormato atualmente = 'feed'.
     """
     items = list_assets(
         db=db,
-        tipo_asset=TipoAssetEnum.post_kwai.value,
-        plataforma=PlataformaEnum.kwai.value,
+        tipo_asset=models.TipoAssetEnum.post_kwai,
+        plataforma=models.PlataformaEnum.kwai,
         formato=formato,
         campanha=campanha,
         cliente=cliente,
@@ -69,13 +64,12 @@ def list_posts_kwai(
 def get_post_kwai(
     db: Session,
     asset_id: int,
-):
+) -> Optional[models.Asset]:
     """
-    Busca um Post Kwai garantindo o tipo correto.
-    Retorna None se não for post_kwai.
+    Busca um post do Kwai pelo ID.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_kwai:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_kwai:
         return None
     return asset
 
@@ -83,22 +77,17 @@ def get_post_kwai(
 def update_post_kwai(
     db: Session,
     asset_id: int,
-    payload: PostKwaiUpdate,
-):
+    data: schemas.PostKwaiUpdate,
+) -> Optional[models.Asset]:
     """
-    Atualiza um Post Kwai.
-    Não permite trocar tipo_asset/plataforma.
+    Atualiza um post do Kwai. Retorna None se não existir ou tipo diferente.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_kwai:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_kwai:
         return None
 
-    data = payload.model_dump(exclude_unset=True)
-    # Blindagem extra
-    data.pop("tipo_asset", None)
-    data.pop("plataforma", None)
-
-    updated = update_asset(db, asset, data)
+    payload = data.model_dump(exclude_unset=True)
+    updated = update_asset(db, asset, payload)
     return updated
 
 
@@ -107,14 +96,20 @@ def delete_post_kwai(
     asset_id: int,
 ) -> bool:
     """
-    Deleta um Post Kwai.
-    Retorna:
-    - True se deletou
-    - False se não encontrou / tipo errado.
+    Deleta um post do Kwai. Retorna False se não existir ou tipo diferente.
     """
     asset = get_asset(db, asset_id)
-    if not asset or asset.tipo_asset != TipoAssetEnum.post_kwai:
+    if not asset or asset.tipo_asset != models.TipoAssetEnum.post_kwai:
         return False
 
     delete_asset(db, asset_id)
     return True
+
+
+# -------------------------------------------------------------------
+# Aliases de compatibilidade com código legado
+# (ex.: crud.__init__.py importando create_kwai_post, list_kwai_posts)
+# -------------------------------------------------------------------
+
+create_kwai_post = create_post_kwai
+list_kwai_posts = list_posts_kwai
