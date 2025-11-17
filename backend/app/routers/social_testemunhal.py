@@ -48,23 +48,44 @@ def api_list_social_testemunhal(
         )
 
     return list_social_testemunhal(
-        db, plataforma=plataforma, duracao_seg=duracao_seg, search=search, skip=skip, limit=limit
+        db,
+        plataforma=plataforma,
+        duracao_seg=duracao_seg,
+        search=search,
+        skip=skip,
+        limit=limit,
     )
 
 
-@router.post("/", response_model=SocialTestemunhalOut, status_code=status.HTTP_201_CREATED)
-def api_create_social_testemunhal(payload: SocialTestemunhalCreate, db: Session = Depends(get_db)):
+@router.post(
+    "/",
+    response_model=SocialTestemunhalOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def api_create_social_testemunhal(
+    payload: SocialTestemunhalCreate,
+    db: Session = Depends(get_db),
+):
     try:
-        return create_social_testemunhal(db, payload.model_dump())
+        return create_social_testemunhal(db, payload)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e),
+        )
 
 
 @router.get("/{asset_id}", response_model=SocialTestemunhalOut)
-def api_get_social_testemunhal(asset_id: int, db: Session = Depends(get_db)):
+def api_get_social_testemunhal(
+    asset_id: int,
+    db: Session = Depends(get_db),
+):
     asset = get_social_testemunhal(db, asset_id)
     if not asset or asset.tipo_asset != models.TipoAssetEnum.social_video_testemunhal:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Testemunhal não encontrado.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Testemunhal não encontrado.",
+        )
     return asset
 
 
@@ -74,26 +95,43 @@ def api_update_social_testemunhal(
     payload: SocialTestemunhalUpdate,
     db: Session = Depends(get_db),
 ):
-    asset = get_social_testemunhal(db, asset_id)
-    if not asset or asset.tipo_asset != models.TipoAssetEnum.social_video_testemunhal:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Testemunhal não encontrado.")
-
-    # Validações extras
+    # Validações extras antes de ir pro CRUD
     if payload.plataforma and payload.plataforma not in ("instagram", "tiktok"):
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Plataforma inválida.")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Plataforma inválida.",
+        )
     if payload.formato and payload.formato != "reels":
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Formato deve ser 'reels'.")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Formato deve ser 'reels'.",
+        )
 
     try:
-        return update_social_testemunhal(db, asset, payload.model_dump(exclude_unset=True))
+        asset = update_social_testemunhal(db, asset_id, payload)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e),
+        )
+
+    if not asset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Testemunhal não encontrado.",
+        )
+
+    return asset
 
 
 @router.delete("/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
-def api_delete_social_testemunhal(asset_id: int, db: Session = Depends(get_db)):
+def api_delete_social_testemunhal(
+    asset_id: int,
+    db: Session = Depends(get_db),
+):
     asset = get_social_testemunhal(db, asset_id)
     if not asset or asset.tipo_asset != models.TipoAssetEnum.social_video_testemunhal:
-        # Idempotente: 204 mesmo se já não existe
+        # Idempotente: 204 mesmo se já não existe ou não é do tipo
         return
     delete_social_testemunhal(db, asset_id)
+    return

@@ -4,12 +4,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from .. import models
-from ..crud import assets_base as crud
 from ..schemas.post_facebook import (
     PostFacebookCreate,
     PostFacebookUpdate,
     PostFacebookOut,
+)
+from ..crud.post_facebook import (
+    list_facebook_posts as crud_list_facebook_posts,
+    create_facebook_post as crud_create_facebook_post,
+    get_facebook_post as crud_get_facebook_post,
+    update_facebook_post as crud_update_facebook_post,
+    delete_facebook_post as crud_delete_facebook_post,
 )
 
 router = APIRouter(prefix="/posts/facebook", tags=["Posts - Facebook"])
@@ -17,21 +22,21 @@ router = APIRouter(prefix="/posts/facebook", tags=["Posts - Facebook"])
 
 @router.get("", response_model=List[PostFacebookOut])
 def list_facebook_posts(
-    search: Optional[str] = Query(None, description="Busca em título/descrição/campanha/cliente"),
+    search: Optional[str] = Query(
+        None,
+        description="Busca em título/descrição/campanha/cliente",
+    ),
     campanha: Optional[str] = None,
     cliente: Optional[str] = None,
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
 ):
-    items = crud.list_assets(
-        db,
-        tipo_asset=models.TipoAssetEnum.post_facebook,
-        plataforma=models.PlataformaEnum.facebook,
-        formato="feed",
+    items = crud_list_facebook_posts(
+        db=db,
+        search=search,
         campanha=campanha,
         cliente=cliente,
-        search=search,
         skip=skip,
         limit=limit,
     )
@@ -43,23 +48,21 @@ def create_facebook_post(
     payload: PostFacebookCreate,
     db: Session = Depends(get_db),
 ):
-    data = payload.model_dump()
-    data.update(
-        dict(
-            tipo_asset=models.TipoAssetEnum.post_facebook,
-            plataforma=models.PlataformaEnum.facebook,
-            formato="feed",
-        )
-    )
-    created = crud.create_asset(db, data)
+    created = crud_create_facebook_post(db, payload)
     return created
 
 
 @router.get("/{asset_id}", response_model=PostFacebookOut)
-def get_facebook_post(asset_id: int, db: Session = Depends(get_db)):
-    obj = crud.get_asset(db, asset_id)
-    if not obj or obj.tipo_asset != models.TipoAssetEnum.post_facebook:
-        raise HTTPException(status_code=404, detail="Post Facebook não encontrado")
+def get_facebook_post(
+    asset_id: int,
+    db: Session = Depends(get_db),
+):
+    obj = crud_get_facebook_post(db, asset_id)
+    if not obj:
+        raise HTTPException(
+            status_code=404,
+            detail="Post Facebook não encontrado",
+        )
     return obj
 
 
@@ -69,21 +72,24 @@ def update_facebook_post(
     payload: PostFacebookUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = crud.get_asset(db, asset_id)
-    if not obj or obj.tipo_asset != models.TipoAssetEnum.post_facebook:
-        raise HTTPException(status_code=404, detail="Post Facebook não encontrado")
-
-    data = payload.model_dump(exclude_unset=True)
-    # mantém fixos:
-    data.update(dict(plataforma=models.PlataformaEnum.facebook, formato="feed"))
-
-    updated = crud.update_asset(db, obj, data)
+    updated = crud_update_facebook_post(db, asset_id, payload)
+    if not updated:
+        raise HTTPException(
+            status_code=404,
+            detail="Post Facebook não encontrado",
+        )
     return updated
 
 
 @router.delete("/{asset_id}", status_code=204)
-def delete_facebook_post(asset_id: int, db: Session = Depends(get_db)):
-    obj = crud.get_asset(db, asset_id)
-    if not obj or obj.tipo_asset != models.TipoAssetEnum.post_facebook:
-        raise HTTPException(status_code=404, detail="Post Facebook não encontrado")
-    crud.delete_asset(db, asset_id)
+def delete_facebook_post(
+    asset_id: int,
+    db: Session = Depends(get_db),
+):
+    success = crud_delete_facebook_post(db, asset_id)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail="Post Facebook não encontrado",
+        )
+    return None
