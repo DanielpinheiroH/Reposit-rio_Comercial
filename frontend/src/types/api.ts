@@ -6,7 +6,8 @@ export type Plataforma =
   | "instagram"
   | "tiktok"
   | "kwai"
-  | "youtube_shorts";
+  | "youtube_shorts"
+  | "facebook"; // novo no backend
 
 export type ClassConteudo =
   | "Publicidade"
@@ -26,12 +27,16 @@ export type Asset = {
   data_publicacao?: string | null;
   classificacao_conteudo_especial?: ClassConteudo;
   thumbnail_url?: string | null;
+
+  // extras que o backend agora tem (deixo opcionais pra não quebrar nada)
+  tipo_asset?: string;
+  formato?: string | null;
 };
 
 export type PageIn = {
-  page?: number;   // 1-based
-  size?: number;   // itens por página
-  q?: string;      // busca livre
+  page?: number; // 1-based
+  size?: number; // itens por página
+  q?: string; // busca livre
   plataforma?: Plataforma | "";
   cliente?: string;
   dt_ini?: string; // yyyy-mm-dd

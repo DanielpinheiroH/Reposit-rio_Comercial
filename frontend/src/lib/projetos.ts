@@ -5,7 +5,7 @@ export type ProjetoInput = {
   nome: string;
   metaValor?: number | null;
   dataInicio?: string | null; // yyyy-mm-dd
-  dataFim?: string | null;    // yyyy-mm-dd
+  dataFim?: string | null; // yyyy-mm-dd
   descricao?: string | null;
 };
 
@@ -14,15 +14,17 @@ export type ProjetoOut = ProjetoInput & {
   created_at?: string;
 };
 
-// Tenta salvar na API /api/projetos; se não existir, salva em localStorage (dev)
-export async function createProjeto(payload: ProjetoInput): Promise<ProjetoOut> {
+// Tenta salvar na API /projetos; se não existir, salva em localStorage (dev)
+export async function createProjeto(
+  payload: ProjetoInput,
+): Promise<ProjetoOut> {
   try {
     const { data } = await api.post<ProjetoOut>("/projetos", payload);
     return data;
   } catch (err) {
     console.warn(
-      "[projetos] /api/projetos indisponível. Usando fallback em localStorage.",
-      err
+      "[projetos] /projetos indisponível na API. Usando fallback em localStorage.",
+      err,
     );
     const fake: ProjetoOut = {
       id: Date.now(),
@@ -30,7 +32,9 @@ export async function createProjeto(payload: ProjetoInput): Promise<ProjetoOut> 
       created_at: new Date().toISOString(),
     };
     const key = "rc_projetos_dev";
-    const arr: ProjetoOut[] = JSON.parse(localStorage.getItem(key) || "[]");
+    const arr: ProjetoOut[] = JSON.parse(
+      localStorage.getItem(key) || "[]",
+    );
     arr.push(fake);
     localStorage.setItem(key, JSON.stringify(arr));
     return fake;
