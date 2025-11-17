@@ -1,7 +1,17 @@
-from typing import List, Optional, Any, Dict
+# backend/app/crud/assets_base.py
+
+from typing import List, Optional, Any, Dict, Union
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
+
 from .. import models
+
+# -------------------------
+# Tipos auxiliares
+# -------------------------
+
+TipoAssetLike = Union[str, models.TipoAssetEnum, None]
+PlataformaLike = Union[str, models.PlataformaEnum, None]
 
 # -------------------------
 # Auxiliares de coerção/validação
@@ -43,8 +53,8 @@ SUGGESTED_FORMATS: Dict[str, Dict[str, List[str]]] = {
 }
 
 
-def _to_enum(enum_cls: Any, value: Optional[str]) -> Optional[Any]:
-    """Converte string em Enum com segurança; retorna None se não casar."""
+def _to_enum(enum_cls: Any, value: Optional[Any]) -> Optional[Any]:
+    """Converte string ou enum-instance em Enum alvo com segurança; retorna None se não casar."""
     if value is None:
         return None
     if isinstance(value, enum_cls):
@@ -55,59 +65,88 @@ def _to_enum(enum_cls: Any, value: Optional[str]) -> Optional[Any]:
         return None
 
 
-def _sanitize_formato(tipo_asset: Optional[str], plataforma: Optional[str], formato: Optional[str]) -> Optional[str]:
+def _sanitize_formato(
+    tipo_asset: Optional[str],
+    plataforma: Optional[str],
+    formato: Optional[str],
+) -> Optional[str]:
     """
-    Se existir sugestão de formato para (tipo, plataforma), e o formato informado não estiver
-    na lista, mantém original (não bloquear). Apenas normaliza espaços e minúsculas.
+    Normaliza 'formato':
+    - trim, lower, troca espaços por underscore;
+    - converte 30/30seg/30s → 30s, 60/60seg/60s → 60s;
+    - se existir sugestão para (tipo, plataforma), a UI pode se beneficiar, mas aqui não bloqueamos.
     """
     if not formato:
         return None
+
     f = str(formato).strip()
     if not f:
         return None
 
-    # normalização simples
+    # Normalização simples
     norm = f.lower().replace(" ", "_").replace('"', "").replace("''", "")
-    # ex: 30", 60" -> 30s, 60s
+
+    # 30", 60" → 30s, 60s
     if norm in {"30", "30seg", "30s"}:
         norm = "30s"
     elif norm in {"60", "60seg", "60s"}:
         norm = "60s"
 
-    # se houver lista sugerida, a UI pode se beneficiar (mas não bloqueamos)
-    tipo_key = tipo_asset or ""
-    plat_key = plataforma or ""
+    tipo_key = (tipo_asset or "").strip()
+    plat_key = (plataforma or "").strip()
+
     if tipo_key in SUGGESTED_FORMATS and plat_key in SUGGESTED_FORMATS[tipo_key]:
-        # poderíamos validar aqui; manteremos apenas a normalização
+        # Poderíamos validar aqui e restringir, mas a ideia deste core é ser permissivo.
+        # Deixamos a validação dura para os CRUDs específicos / schemas Pydantic.
         pass
 
     return norm
 
 
 # -------------------------
-# CRUD Genérico
+# CRUD Genérico de Asset
 # -------------------------
 
-def create_asset(db: Session, data_dict: dict) -> models.Asset:
+def create_asset(db: Session, data_dict: Dict[str, Any]) -> models.Asset:
     """Cria um Asset genérico a partir de um dicionário de dados."""
-    # coerção segura de enums (se vierem como string)
+
+    # Coerção segura de enums (se vierem como string)
     if "tipo_asset" in data_dict:
         coerced = _to_enum(models.TipoAssetEnum, data_dict.get("tipo_asset"))
         if coerced:
             data_dict["tipo_asset"] = coerced
+
     if "plataforma" in data_dict:
         coerced = _to_enum(models.PlataformaEnum, data_dict.get("plataforma"))
         if coerced:
             data_dict["plataforma"] = coerced
+
     if "classificacao_conteudo_especial" in data_dict:
-        coerced = _to_enum(models.ClassConteudoEnum, data_dict.get("classificacao_conteudo_especial"))
+        coerced = _to_enum(
+            models.ClassConteudoEnum,
+            data_dict.get("classificacao_conteudo_especial"),
+        )
         if coerced:
             data_dict["classificacao_conteudo_especial"] = coerced
 
-    # sanitiza formato (opcional, não bloqueante)
+    # Sanitiza formato (opcional, não bloqueante)
+    tipo_val = data_dict.get("tipo_asset")
+    plat_val = data_dict.get("plataforma")
+
+    tipo_str = (
+        tipo_val.value
+        if isinstance(tipo_val, models.TipoAssetEnum)
+        else (str(tipo_val) if tipo_val is not None else None)
+    )
+    plat_str = (
+        plat_val.value
+        if isinstance(plat_val, models.PlataformaEnum)
+        else (str(plat_val) if plat_val is not None else None)
+    )
+
     data_dict["formato"] = _sanitize_formato(
-        str(data_dict.get("tipo_asset").value if isinstance(data_dict.get("tipo_asset"), models.TipoAssetEnum) else data_dict.get("tipo_asset")),
-        str(data_dict.get("plataforma").value if isinstance(data_dict.get("plataforma"), models.PlataformaEnum) else data_dict.get("plataforma")),
+        tipo_str,
+        plat_str,
         data_dict.get("formato"),
     )
 
@@ -123,28 +162,51 @@ def get_asset(db: Session, asset_id: int) -> Optional[models.Asset]:
     return db.get(models.Asset, asset_id)
 
 
-def update_asset(db: Session, asset: models.Asset, data_dict: dict) -> models.Asset:
+def update_asset(db: Session, asset: models.Asset, data_dict: Dict[str, Any]) -> models.Asset:
     """Atualiza campos de um asset existente."""
+
+    # Coerção de enums, se vierem no payload
     if "tipo_asset" in data_dict:
         coerced = _to_enum(models.TipoAssetEnum, data_dict.get("tipo_asset"))
         if coerced:
             data_dict["tipo_asset"] = coerced
+
     if "plataforma" in data_dict:
         coerced = _to_enum(models.PlataformaEnum, data_dict.get("plataforma"))
         if coerced:
             data_dict["plataforma"] = coerced
+
     if "classificacao_conteudo_especial" in data_dict:
-        coerced = _to_enum(models.ClassConteudoEnum, data_dict.get("classificacao_conteudo_especial"))
+        coerced = _to_enum(
+            models.ClassConteudoEnum,
+            data_dict.get("classificacao_conteudo_especial"),
+        )
         if coerced:
             data_dict["classificacao_conteudo_especial"] = coerced
 
+    # Se qualquer uma dessas informações mexeu, recalculamos formato
     if "formato" in data_dict or "tipo_asset" in data_dict or "plataforma" in data_dict:
         tipo_val = data_dict.get("tipo_asset", getattr(asset, "tipo_asset", None))
         plat_val = data_dict.get("plataforma", getattr(asset, "plataforma", None))
-        tipo_str = tipo_val.value if isinstance(tipo_val, models.TipoAssetEnum) else tipo_val
-        plat_str = plat_val.value if isinstance(plat_val, models.PlataformaEnum) else plat_val
-        data_dict["formato"] = _sanitize_formato(tipo_str, plat_str, data_dict.get("formato", getattr(asset, "formato", None)))
 
+        tipo_str = (
+            tipo_val.value
+            if isinstance(tipo_val, models.TipoAssetEnum)
+            else (str(tipo_val) if tipo_val is not None else None)
+        )
+        plat_str = (
+            plat_val.value
+            if isinstance(plat_val, models.PlataformaEnum)
+            else (str(plat_val) if plat_val is not None else None)
+        )
+
+        data_dict["formato"] = _sanitize_formato(
+            tipo_str,
+            plat_str,
+            data_dict.get("formato", getattr(asset, "formato", None)),
+        )
+
+    # Aplica todos os campos
     for field, value in data_dict.items():
         setattr(asset, field, value)
 
@@ -164,8 +226,8 @@ def delete_asset(db: Session, asset_id: int) -> None:
 
 def list_assets(
     db: Session,
-    tipo_asset: Optional[str] = None,
-    plataforma: Optional[str] = None,
+    tipo_asset: TipoAssetLike = None,
+    plataforma: PlataformaLike = None,
     formato: Optional[str] = None,
     campanha: Optional[str] = None,
     cliente: Optional[str] = None,
@@ -173,7 +235,11 @@ def list_assets(
     skip: int = 0,
     limit: int = 50,
 ) -> List[models.Asset]:
-    """Lista assets com filtros genéricos, usado pelos CRUDs específicos."""
+    """
+    Lista assets com filtros genéricos, usado pelos CRUDs específicos.
+
+    Observação: aceita tanto strings quanto Enums em tipo_asset/plataforma.
+    """
     filters = []
 
     if tipo_asset:
