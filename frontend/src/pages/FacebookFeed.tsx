@@ -1,6 +1,7 @@
+// src/pages/FacebookFeed.tsx
 import React from "react";
 
-const FacebookFeed: React.FC = () => {
+export const FacebookFeed: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>
@@ -13,10 +14,8 @@ const FacebookFeed: React.FC = () => {
       </header>
 
       <div className="text-red-100/80 text-sm">
-        (Em construção) — depois ligamos com o endpoint de post_facebook.
+        (Em construção) — depois ligamos com o endpoint de <code>post_facebook</code>.
       </div>
     </div>
   );
 };
-
-export default FacebookFeed;

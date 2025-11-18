@@ -1,6 +1,6 @@
 import React from "react";
 
-const TikTokFeed: React.FC = () => {
+export const TikTokFeed: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>

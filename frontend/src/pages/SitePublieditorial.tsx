@@ -1,6 +1,6 @@
 import React from "react";
 
-const SitePublieditorial: React.FC = () => {
+export const SitePublieditorial: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const linkBase =
   "px-3 py-2 rounded-lg text-base flex items-center justify-between transition-colors";
@@ -15,8 +15,6 @@ const subInactive = "text-red-100/70 hover:bg-red-900/30";
 const subActive = "bg-red-900/70 text-white border border-red-700";
 
 export const Sidebar: React.FC = () => {
-  const location = useLocation();
-
   const [openSite, setOpenSite] = useState(true);
   const [openYoutube, setOpenYoutube] = useState(true);
   const [openInstagram, setOpenInstagram] = useState(true);
@@ -24,29 +22,6 @@ export const Sidebar: React.FC = () => {
   const [openKwai, setOpenKwai] = useState(true);
   const [openFacebook, setOpenFacebook] = useState(true);
   const [openOrg, setOpenOrg] = useState(true);
-
-  const params = new URLSearchParams(location.search);
-
-  const isConteudoAll = () =>
-    location.pathname === "/conteudos-especiais" &&
-    !params.get("formato");
-
-  const isConteudoFormato = (formato: string) =>
-    location.pathname === "/conteudos-especiais" &&
-    params.get("formato") === formato;
-
-  const isPosts = (plataforma: string, tipo?: string) => {
-    if (location.pathname !== "/posts-shorts") return false;
-    const p = params.get("plataforma");
-    const t = params.get("tipo");
-    if (!tipo) {
-      return p === plataforma;
-    }
-    return p === plataforma && t === tipo;
-  };
-
-  const isColecoes = location.pathname === "/colecoes";
-  const isMetricas = location.pathname === "/metricas";
 
   return (
     <aside className="w-64 border-r border-red-900 bg-red-950/60 backdrop-blur-sm hidden md:flex flex-col">
@@ -102,81 +77,59 @@ export const Sidebar: React.FC = () => {
 
           {openSite && (
             <div className="mt-1 space-y-0.5">
-              <Link
-                to="/conteudos-especiais"
-                className={
-                  subBase +
-                  " " +
-                  (isConteudoAll() ? subActive : subInactive)
+              <NavLink
+                to="/site/todos"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Todos os conteúdos</span>
-              </Link>
+              </NavLink>
 
-              <Link
-                to="/conteudos-especiais?formato=publieditorial"
-                className={
-                  subBase +
-                  " " +
-                  (isConteudoFormato("publieditorial")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/site/publieditorial"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Publieditorial</span>
-              </Link>
+              </NavLink>
 
-              <Link
-                to="/conteudos-especiais?formato=publicidade_nativa"
-                className={
-                  subBase +
-                  " " +
-                  (isConteudoFormato("publicidade_nativa")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/site/publicidade-nativa"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Publicidade nativa</span>
-              </Link>
+              </NavLink>
 
-              <Link
-                to="/conteudos-especiais?formato=expressao_de_opiniao_digital"
-                className={
-                  subBase +
-                  " " +
-                  (isConteudoFormato("expressao_de_opiniao_digital")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/site/artigos-opiniao"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Artigo / opinião digital</span>
-              </Link>
+              </NavLink>
 
-              <Link
-                to="/conteudos-especiais?formato=manchete"
-                className={
-                  subBase +
-                  " " +
-                  (isConteudoFormato("manchete")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/site/manchetes"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Manchetes</span>
-              </Link>
+              </NavLink>
 
-              <Link
-                to="/conteudos-especiais?formato=sub_manchete"
-                className={
-                  subBase +
-                  " " +
-                  (isConteudoFormato("sub_manchete")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/site/sub-manchetes"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Sub-manchetes</span>
-              </Link>
+              </NavLink>
             </div>
           )}
         </div>
@@ -200,44 +153,32 @@ export const Sidebar: React.FC = () => {
 
           {openYoutube && (
             <div className="mt-1 space-y-0.5">
-              <Link
-                to="/posts-shorts?plataforma=youtube&tipo=live"
-                className={
-                  subBase +
-                  " " +
-                  (isPosts("youtube", "live")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/youtube/lives"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Lives no YouTube</span>
-              </Link>
+              </NavLink>
 
-              <Link
-                to="/posts-shorts?plataforma=youtube&tipo=talks"
-                className={
-                  subBase +
-                  " " +
-                  (isPosts("youtube", "talks")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/youtube/talks"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>YouTube Talks (Big / One / Little)</span>
-              </Link>
+              </NavLink>
 
-              <Link
-                to="/posts-shorts?plataforma=youtube_shorts"
-                className={
-                  subBase +
-                  " " +
-                  (isPosts("youtube_shorts")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/youtube/shorts"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>YouTube Shorts</span>
-              </Link>
+              </NavLink>
             </div>
           )}
         </div>
@@ -261,31 +202,23 @@ export const Sidebar: React.FC = () => {
 
           {openInstagram && (
             <div className="mt-1 space-y-0.5">
-              <Link
-                to="/posts-shorts?plataforma=instagram&tipo=feed_reels"
-                className={
-                  subBase +
-                  " " +
-                  (isPosts("instagram", "feed_reels")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/instagram/feed-reels"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Feed &amp; Reels</span>
-              </Link>
+              </NavLink>
 
-              <Link
-                to="/posts-shorts?plataforma=instagram&tipo=stories"
-                className={
-                  subBase +
-                  " " +
-                  (isPosts("instagram", "stories")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/instagram/stories"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Stories</span>
-              </Link>
+              </NavLink>
             </div>
           )}
         </div>
@@ -309,18 +242,14 @@ export const Sidebar: React.FC = () => {
 
           {openTikTok && (
             <div className="mt-1 space-y-0.5">
-              <Link
-                to="/posts-shorts?plataforma=tiktok&tipo=feed"
-                className={
-                  subBase +
-                  " " +
-                  (isPosts("tiktok", "feed")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/tiktok/feed"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Feed / Vídeos curtos</span>
-              </Link>
+              </NavLink>
             </div>
           )}
         </div>
@@ -344,18 +273,14 @@ export const Sidebar: React.FC = () => {
 
           {openKwai && (
             <div className="mt-1 space-y-0.5">
-              <Link
-                to="/posts-shorts?plataforma=kwai&tipo=feed"
-                className={
-                  subBase +
-                  " " +
-                  (isPosts("kwai", "feed")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/kwai/feed"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Feed / Vídeos</span>
-              </Link>
+              </NavLink>
             </div>
           )}
         </div>
@@ -379,18 +304,14 @@ export const Sidebar: React.FC = () => {
 
           {openFacebook && (
             <div className="mt-1 space-y-0.5">
-              <Link
-                to="/posts-shorts?plataforma=facebook&tipo=feed"
-                className={
-                  subBase +
-                  " " +
-                  (isPosts("facebook", "feed")
-                    ? subActive
-                    : subInactive)
+              <NavLink
+                to="/facebook/feed"
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Feed</span>
-              </Link>
+              </NavLink>
             </div>
           )}
         </div>
@@ -416,10 +337,8 @@ export const Sidebar: React.FC = () => {
             <div className="mt-1 space-y-0.5">
               <NavLink
                 to="/colecoes"
-                className={
-                  subBase +
-                  " " +
-                  (isColecoes ? subActive : subInactive)
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Coleções</span>
@@ -427,10 +346,8 @@ export const Sidebar: React.FC = () => {
 
               <NavLink
                 to="/metricas"
-                className={
-                  subBase +
-                  " " +
-                  (isMetricas ? subActive : subInactive)
+                className={({ isActive }) =>
+                  `${subBase} ${isActive ? subActive : subInactive}`
                 }
               >
                 <span>Métricas</span>

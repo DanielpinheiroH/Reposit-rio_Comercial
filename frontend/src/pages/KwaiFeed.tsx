@@ -1,6 +1,7 @@
+// src/pages/KwaiFeed.tsx
 import React from "react";
 
-const KwaiFeed: React.FC = () => {
+export const KwaiFeed: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>
@@ -18,5 +19,3 @@ const KwaiFeed: React.FC = () => {
     </div>
   );
 };
-
-export default KwaiFeed;

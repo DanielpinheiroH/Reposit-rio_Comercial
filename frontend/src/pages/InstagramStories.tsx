@@ -1,6 +1,7 @@
+// src/pages/InstagramStories.tsx
 import React from "react";
 
-const InstagramStories: React.FC = () => {
+export const InstagramStories: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>
@@ -19,5 +20,3 @@ const InstagramStories: React.FC = () => {
     </div>
   );
 };
-
-export default InstagramStories;

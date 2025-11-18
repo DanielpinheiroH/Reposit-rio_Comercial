@@ -1,6 +1,6 @@
 import React from "react";
 
-const SitePublicidadeNativa: React.FC = () => {
+export const SitePublicidadeNativa: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>

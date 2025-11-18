@@ -1,6 +1,6 @@
 import React from "react";
 
-const SiteSubManchetes: React.FC = () => {
+export const SiteSubManchetes: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>

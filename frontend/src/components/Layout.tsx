@@ -27,7 +27,9 @@ export const Layout: React.FC = () => {
         setHealth(res.data);
       } catch (err: any) {
         console.error(err);
-        setError("Não consegui falar com o backend. Confere se ele está rodando em http://localhost:8000.");
+        setError(
+          "Não consegui falar com o backend. Confere se ele está rodando em http://localhost:8000."
+        );
       } finally {
         setLoading(false);
       }
@@ -51,12 +53,40 @@ export const Layout: React.FC = () => {
 
   const pageLabelMap: Record<string, string> = {
     "/": "Dashboard",
-    "/conteudos-especiais": "Conteúdos especiais",
-    "/posts-shorts": "Posts & Shorts",
-    "/colecoes": "Coleções",
-    "/metricas": "Métricas",
+
+    // Site / Portal
+    "/site/todos": "Site / Todos os conteúdos",
+    "/site/publieditorial": "Site / Publieditorial",
+    "/site/publicidade-nativa": "Site / Publicidade nativa",
+    "/site/artigo-opiniao-digital": "Site / Artigo / opinião digital",
+    "/site/manchetes": "Site / Manchetes",
+    "/site/sub-manchetes": "Site / Sub-manchetes",
+
+    // YouTube
+    "/youtube/lives": "YouTube / Lives",
+    "/youtube/talks": "YouTube / Talks",
+    "/youtube/shorts": "YouTube / Shorts",
+
+    // Instagram
+    "/instagram/feed-reels": "Instagram / Feed & Reels",
+    "/instagram/stories": "Instagram / Stories",
+
+    // TikTok / Kwai / Facebook
+    "/tiktok/feed": "TikTok / Feed",
+    "/kwai/feed": "Kwai / Feed",
+    "/facebook/feed": "Facebook / Feed",
+
+    // Organização
+    "/colecoes": "Organização / Coleções",
+    "/metricas": "Organização / Métricas",
+
+    // Consolidadas antigas
+    "/conteudos-especiais": "Site / Conteúdos especiais (visão única)",
+    "/posts-shorts": "Posts & Shorts (visão única)",
   };
-  const currentPageLabel = pageLabelMap[location.pathname] || "Dashboard";
+
+  const currentPageLabel =
+    pageLabelMap[location.pathname] || "Repositório Comercial";
 
   function closeNewProjectModal() {
     setOpenNew(false);

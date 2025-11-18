@@ -1,6 +1,6 @@
 import React from "react";
 
-const SiteTodos: React.FC = () => {
+export const SiteTodos: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>

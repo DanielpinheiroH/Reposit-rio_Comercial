@@ -1,6 +1,7 @@
+// src/pages/InstagramFeedReels.tsx
 import React from "react";
 
-const InstagramFeedReels: React.FC = () => {
+export const InstagramFeedReels: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-4">
       <header>
@@ -19,5 +20,3 @@ const InstagramFeedReels: React.FC = () => {
     </div>
   );
 };
-
-export default InstagramFeedReels;
