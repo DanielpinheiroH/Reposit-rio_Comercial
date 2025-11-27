@@ -1,12 +1,11 @@
-// src/components/ui/Modal.tsx
-import React, { useEffect } from "react";
+// frontend/src/components/ui/Modal.tsx
+import React from "react";
 
 type ModalProps = {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  widthClass?: string; // ex: "max-w-2xl"
 };
 
 export const Modal: React.FC<ModalProps> = ({
@@ -14,45 +13,66 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
-  widthClass = "max-w-2xl",
 }) => {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    if (open) document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center"
-      aria-modal="true"
-      role="dialog"
+      className={`
+        fixed inset-0 z-50 flex items-center justify-center
+        transition-all duration-200
+        ${open ? "pointer-events-auto" : "pointer-events-none"}
+      `}
+      aria-hidden={!open}
     >
-      {/* backdrop vermelho translúcido */}
+      {/* BACKDROP COM FADE */}
       <div
-        className="absolute inset-0 bg-red-950/70 backdrop-blur-sm"
+        className={`
+          absolute inset-0
+          bg-slate-950/70 backdrop-blur-sm
+          transition-opacity duration-200
+          ${open ? "opacity-100" : "opacity-0"}
+        `}
         onClick={onClose}
       />
+
+      {/* CONTAINER DO MODAL COM SCALE + TRANSLATE */}
       <div
-        className={`relative w-full ${widthClass} mx-4 rounded-2xl border border-red-900/60 bg-red-900/30 shadow-xl`}
+        className={`
+          relative w-full max-w-lg mx-4
+          rounded-2xl border border-red-900/70
+          bg-slate-950/95
+          shadow-2xl shadow-red-900/40
+          transition-all duration-200
+          ${open
+            ? "opacity-100 translate-y-0 scale-100"
+            : "opacity-0 -translate-y-4 scale-95"}
+        `}
       >
-        {title && (
-          <div className="px-5 py-4 border-b border-red-900/60 flex items-center justify-between">
-            <h3 className="text-red-100 font-semibold">{title}</h3>
+        {/* Cabeçalho */}
+        {(title || onClose) && (
+          <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-red-900/60">
+            <h2 className="text-sm font-semibold text-red-50">
+              {title ?? "Novo registro"}
+            </h2>
             <button
+              type="button"
               onClick={onClose}
-              className="text-red-200/80 hover:text-white text-sm px-2 py-1 rounded-md border border-red-900/60 hover:bg-red-900/60"
-              aria-label="Fechar"
+              className="
+                inline-flex h-7 w-7 items-center justify-center
+                rounded-full border border-red-900/70
+                text-xs text-red-200
+                hover:bg-red-900/60 hover:text-white
+                transition-colors
+              "
             >
-              fechar
+              ✕
             </button>
           </div>
         )}
-        <div className="p-5">{children}</div>
+
+        {/* Conteúdo */}
+        <div className="px-5 py-4 max-h-[70vh] overflow-y-auto custom-scroll">
+          {children}
+        </div>
       </div>
     </div>
   );

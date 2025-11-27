@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 import { Modal } from "./ui/Modal";
 import { NewProjectModal } from "./NewProjectModal";
 import { createProjeto } from "../lib/projetos";
+import { NewProjectButton } from "./NewProjectButton";
 
 type HealthStatus = { status: string };
 
@@ -114,21 +115,7 @@ export const Layout: React.FC = () => {
         <Footer />
 
         {/* Botão flutuante global */}
-        <button
-          onClick={() => navigate("/projeto/novo")}
-          className="
-            fixed bottom-6 right-6 z-50
-            px-4 py-3 rounded-xl
-            border border-red-800
-            bg-white text-red-700
-            text-xs font-semibold shadow-lg
-            hover:bg-red-50 active:scale-[0.98]
-          "
-          aria-label="Novo Projeto"
-          title="Novo Projeto"
-        >
-          + Novo Projeto
-        </button>
+        <NewProjectButton onClick={() => navigate("/projeto/novo")} />
       </div>
 
       {/* Modal Novo Projeto */}
